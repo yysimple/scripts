@@ -1,0 +1,42 @@
+version: '3'
+services:
+  elasticsearch:
+    image: elasticsearch:7.6.2
+    container_name: elasticsearch
+    environment:
+      # 集群名称为elasticsearch
+      - "cluster.name=elasticsearch"
+      # 单节点启动
+      - "discovery.type=single-node"
+      # jvm内存分配为512MB
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    volumes:
+      - ./es/plugins:/usr/share/elasticsearch/plugins
+      - ./es/data:/usr/share/elasticsearch/data
+      - ./es/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    ports:
+      - 9200:9200
+  kibana:
+    image: kibana:7.6.2
+    container_name: kibana
+    links:
+      - elasticsearch: es
+    depends_on:
+      - elasticsearch
+    environment:
+      # 因为上面配置了域名，所以这里可以简写为http://es:9200
+      - "elasticsearch.hosts=http://es:9200"
+    ports:
+      - 5601:5601
+  logstash:
+    image: logstash:7.6.2
+    container_name: logstash
+    volumes:
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - elasticsearch
+    links:
+      - elasticsearch: es
+    ports:
+      - 4560:4560
+
