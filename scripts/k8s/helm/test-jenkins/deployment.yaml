@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: test-jenkins
+  name: test-jenkins
+  namespace: default
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-jenkins
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: test-jenkins
+    spec:
+      imagePullSecrets:
+        - name: docker-harbor-key
+      containers:
+        - image: 192.168.31.110:8084/test/test-jenkins:SNAPSHOT-4
+          imagePullPolicy: Always
+          name: app
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 300m
+              memory: 600Mi
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
